@@ -80,10 +80,10 @@ app.post("/startProcess", (req, res) => {
 		return;
 	}
 
-	const allowedPorts = ["3333", "3334", "3335"];
+	const allowedPorts = ["3333", "3335", "3337"];
 
 	if (!allowedPorts.includes(port)) {
-		response = `Port ${port} is not allowed. Only ports between 3333 and 3335 are allowed`;
+		response = `Port ${port} is not allowed. Only ports between 3333, 3335 and 3337 are allowed`;
 		console.log(response);
 		res.status(401).send(response);
 		return;
@@ -97,7 +97,7 @@ app.post("/startProcess", (req, res) => {
 		`
     const Stream = require("node-rtsp-stream-jsmpeg");
     const options = {
-      name: "streamName",
+      name: "${processId}",
       url: "${rtspStream}",
       wsPort: ${port},
     };
@@ -111,11 +111,11 @@ app.post("/startProcess", (req, res) => {
 
 	// Handle process events
 	childProcess.stdout.on("data", (data) => {
-		console.log(`Process output: ${data}`);
+		console.log(`Process ${processId} output: ${data}`);
 	});
 
 	childProcess.stderr.on("data", (data) => {
-		console.error(`Process output (err): ${data}`);
+		console.error(`Process ${processId} output (err): ${data}`);
 	});
 
 	childProcess.on("close", (code) => {
