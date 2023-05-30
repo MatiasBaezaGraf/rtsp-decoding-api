@@ -1,0 +1,21 @@
+{
+	"name": "rtsp-decoding",
+	"version": "1.0.0",
+	"description": "Webserver used to convert ",
+	"main": "app.js",
+	"scripts": {
+		"dev": "nodemon app.js",
+		"start": "node app.js",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"cors": "^2.8.5",
+		"express": "^4.18.2",
+		"node-rtsp-stream-jsmpeg": "^0.0.2"
+	},
+	"devDependencies": {
+		"nodemon": "^2.0.22"
+	}
+}
