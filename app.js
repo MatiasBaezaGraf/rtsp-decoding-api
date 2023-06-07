@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const { spawn } = require("child_process");
+const { v4: uuidv4 } = require("uuid");
 const cors = require("cors");
 
 app.use(cors());
@@ -36,18 +37,6 @@ const checkProcesses = () => {
 	return extractedStrings;
 };
 
-// Function to get the lowest available process ID
-const getLowestAvailableProcessId = () => {
-	const usedProcessIds = Object.keys(activeProcesses).map(Number);
-	let processId = 1;
-
-	while (usedProcessIds.includes(processId)) {
-		processId++;
-	}
-
-	return processId;
-};
-
 // Start the streaming conversion and publishing process
 app.post("/startProcess", (req, res) => {
 	const rtspStream = req.body.stream;
@@ -74,7 +63,7 @@ app.post("/startProcess", (req, res) => {
 
 	//Check if the port is already in use
 	if (usedPorts.includes(port.toString())) {
-		response = `Port ${port} is already in use`;
+		response = `El puerto ${port} esta en uso`;
 		console.log(response);
 		res.status(400).send(response);
 		return;
@@ -83,13 +72,13 @@ app.post("/startProcess", (req, res) => {
 	const allowedPorts = ["3333", "3335", "3337"];
 
 	if (!allowedPorts.includes(port)) {
-		response = `Port ${port} is not allowed. Only ports between 3333, 3335 and 3337 are allowed`;
+		response = `El puerto ${port} no esta permitido. Los puertos 3333, 3335 y 3337 son los unicos permitidos`;
 		console.log(response);
 		res.status(401).send(response);
 		return;
 	}
 
-	const processId = getLowestAvailableProcessId(); // Generate unique process ID
+	const processId = uuidv4();
 
 	// Spawn a new process
 	const childProcess = spawn("node", [
@@ -115,7 +104,17 @@ app.post("/startProcess", (req, res) => {
 	});
 
 	childProcess.stderr.on("data", (data) => {
-		console.error(`Process ${processId} output (err): ${data}`);
+		//console.error(`Process ${processId} output (err): ${data}`);
+
+		if (
+			data.includes("The name does not resolve for the supplied parameters")
+		) {
+			console.log("Terminating process");
+			childProcess.kill("SIGTERM");
+		} else if (data.includes("No such file or directory")) {
+			console.log("Terminating process");
+			childProcess.kill("SIGTERM");
+		}
 	});
 
 	childProcess.on("close", (code) => {
@@ -147,6 +146,17 @@ app.post("/stopProcess", (req, res) => {
 		res.status(200).send(`Process ${processId} stopped`);
 	} else {
 		res.status(404).send(`Process ${processId} not found`);
+	}
+});
+
+//Check if a process with the given ID is running
+app.post("/process", (req, res) => {
+	const processId = req.body.processId;
+
+	if (activeProcesses[processId]) {
+		res.status(200).send("Process is running");
+	} else {
+		res.status(404).send("Process not found. Closing connection");
 	}
 });
 
