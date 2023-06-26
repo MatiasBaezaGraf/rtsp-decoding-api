@@ -151,12 +151,19 @@ app.post("/stopProcess", (req, res) => {
 
 //Check if a process with the given ID is running
 app.post("/process", (req, res) => {
+	console.log("Checking process");
 	const processId = req.body.processId;
+
+	console.log(processId);
 
 	if (activeProcesses[processId]) {
 		res.status(200).send("Process is running");
 	} else {
-		res.status(404).send("Process not found. Closing connection");
+		res
+			.status(404)
+			.send(
+				`Process ${processId} not found. Closing connection on ${activeProcesses[processId]}]}`
+			);
 	}
 });
 
